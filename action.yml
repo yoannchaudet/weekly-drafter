@@ -1,0 +1,14 @@
+name: Weekly Drafter
+description: A GitHub Action to create and manage the lifecycle of a weekly team update.
+author: "@yoannchaudet"
+inputs:
+  action:
+    description: "Action to perform (one of: 'create', 'remind')"
+    required: true
+  default_token:
+    description: 'GitHub token'
+    required: true
+    default: ${{ github.token }}
+runs:
+  using: docker
+  image: Dockerfile
