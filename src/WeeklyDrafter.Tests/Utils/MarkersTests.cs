@@ -26,7 +26,7 @@ public class MarkersTests
   {
     var text = "<!-- hello -->";
     var markers = Markers.FromText(text);
-    Assert.Equal(1, markers.Count());
+    Assert.Empty(markers);
     Assert.Equal("hello", markers.First().Name);
     Assert.Equal(0, markers.First().Start);
     Assert.Equal(text.Length, markers.First().Length);
@@ -58,11 +58,11 @@ public class MarkersTests
     Assert.Equal("<!-- marker1 date=2020-05-16 -->".Length, marker1.Length);
 
     // marker2
-    Assert.Equal(0, marker2.Arguments.Count);
+    Assert.Empty(marker2.Arguments);
     Assert.Equal(68, marker2.Start);
 
     // marker3
-    Assert.Equal(0, marker3.Arguments.Count);
+    Assert.Empty(marker3.Arguments);
     Assert.Equal(88, marker3.Start);
   }
 }

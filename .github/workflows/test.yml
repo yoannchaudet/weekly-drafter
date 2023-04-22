@@ -9,6 +9,7 @@ on:
 
 jobs:
   test:
+    name: Test
     runs-on: ubuntu-latest
 
     # For EnricoMi/publish-unit-test-result-action
