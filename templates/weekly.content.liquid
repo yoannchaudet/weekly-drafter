@@ -1,0 +1,24 @@
+<!--
+repository: https://github.com/github/actions-core
+category: Weekly
+-->
+
+# Week of {{ monday_english }}
+
+## In case you missed it
+
+<!-- Any other posts or important information worth highlighting here? -->
+
+## What's going on this week
+
+{% assign sorted_teams = config.teams | array.sort "name" -%}
+{%- for team in sorted_teams -%}
+### {{ team.name }}
+
+<!-- Team highlight, cc {{ team.writers | array.sort | array.join ", " }} -->
+
+{% endfor -%}
+
+## Misc
+
+<!-- Anything extra to add? -->

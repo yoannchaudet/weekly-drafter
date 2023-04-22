@@ -7,7 +7,7 @@
       "type": "process",
       "args": [
         "build",
-        "${workspaceFolder}/weekly-drafter.csproj",
+        "${workspaceFolder}/src/WeeklyDrafter/WeeklyDrafter.csproj",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary"
       ],
@@ -19,7 +19,7 @@
       "type": "process",
       "args": [
         "publish",
-        "${workspaceFolder}/weekly-drafter.csproj",
+        "${workspaceFolder}/src/WeeklyDrafter/WeeklyDrafter.csproj",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary"
       ],
@@ -33,7 +33,7 @@
         "watch",
         "run",
         "--project",
-        "${workspaceFolder}/weekly-drafter.csproj"
+        "${workspaceFolder}/src/WeeklyDrafter/WeeklyDrafter.csproj"
       ],
       "problemMatcher": "$msCompile"
     }

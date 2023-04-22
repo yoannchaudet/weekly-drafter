@@ -10,9 +10,9 @@
       "request": "launch",
       "preLaunchTask": "build",
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/bin/Debug/net7.0/osx-x64/weekly-drafter.dll",
-      "args": ["create"],
-      "cwd": "${workspaceFolder}",
+      "program": "${workspaceFolder}/src/WeeklyDrafter/bin/Debug/net7.0/osx-x64/WeeklyDrafter.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/WeeklyDrafter",
       // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
       "console": "internalConsole",
       "stopAtEntry": false
