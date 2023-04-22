@@ -26,7 +26,7 @@ public class MarkersTests
   {
     var text = "<!-- hello -->";
     var markers = Markers.FromText(text);
-    Assert.Empty(markers);
+    Assert.Single(markers);
     Assert.Equal("hello", markers.First().Name);
     Assert.Equal(0, markers.First().Start);
     Assert.Equal(text.Length, markers.First().Length);
