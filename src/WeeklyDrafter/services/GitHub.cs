@@ -15,6 +15,7 @@ public class GitHub : IGitHub
     this.Connection = new Connection(new ProductHeaderValue("weekly-drafter"), context.GitHubToken);
   }
 
+  // Return the last few opened weekly update PRs
   public async Task<IEnumerable<IGitHub.PullRequest>> GetLastWeeklyUpdatePRs(int first = 10)
   {
     // PR filters
@@ -38,5 +39,13 @@ public class GitHub : IGitHub
         Number = pr.Number,
       });
     return await Connection.Run(query);
+  }
+
+  // Return the current weekly update PR if any
+  public async Task<IGitHub.PullRequest?> GetCurrentWeeklyUpdatePR(string sortableMonday)
+  {
+    return (await GetLastWeeklyUpdatePRs()).FirstOrDefault(pr =>
+      Markers.FromText(pr.Body!).Where(m => m.Name == Constants.WEEKLY_UPDATE_MARKER && m.Arguments[Constants.WEEKLY_UPDATE_MARKER_DATE] == sortableMonday).Count() > 0
+    );
   }
 }

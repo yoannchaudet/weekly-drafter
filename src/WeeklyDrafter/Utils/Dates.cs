@@ -1,6 +1,6 @@
 using System.Globalization;
 
-public static class Utils
+public static class Dates
 {
   // Return today's date or the last Monday (which is the unversal start of the week, sorry 🇺🇸)
   public static DateTime GetMonday()

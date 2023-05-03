@@ -12,9 +12,11 @@ public class Create : ICommand
 
   public async Task Run()
   {
-
-    var pr = await this.GitHub.GetLastWeeklyUpdatePRs();
-    Console.WriteLine("test");
-
+    var sortableMonday = Dates.GetMonday().ToSortable();
+    var pr = await GitHub.GetCurrentWeeklyUpdatePR(sortableMonday);
+    if (pr == null)
+      Console.WriteLine("no PR");
+    else
+      Console.WriteLine($"PR matching {pr.Number}");
   }
 }
