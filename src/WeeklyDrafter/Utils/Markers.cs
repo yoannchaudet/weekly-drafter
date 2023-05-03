@@ -17,8 +17,7 @@ public static class Markers
     if (marker.Arguments.Keys.Count > 0)
     {
       builder.Append(" ");
-      builder.Append(String.Join("&",
-            marker.Arguments.AllKeys.Select(a => a + "=" + HttpUtility.UrlEncode(marker.Arguments[a]))));
+      builder.Append(String.Join("&", marker.Arguments.AllKeys.Select(a => $"{a}={HttpUtility.UrlEncode(marker.Arguments[a])}")));
     }
     builder.Append(" -->");
     return builder.ToString();

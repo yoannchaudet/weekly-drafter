@@ -11,7 +11,7 @@ public class ActionContext
   {
     var value = Environment.GetEnvironmentVariable(key);
     if (value == null && required)
-      throw new ArgumentException("Unable to extract required environment variable '" + key + "' from Actions context");
+      throw new ArgumentException($"Unable to extract required environment variable '{key}' from Actions context");
     return value;
   }
 }
