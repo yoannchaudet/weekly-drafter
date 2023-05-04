@@ -1,10 +1,10 @@
-public class Create : ICommand
+public class Create
 {
   private Configuration Configuration { get; }
 
-  private IGitHub GitHub { get; }
+  private GitHub GitHub { get; }
 
-  public Create(Configuration configuration, IGitHub github)
+  public Create(Configuration configuration, GitHub github)
   {
     this.Configuration = configuration;
     this.GitHub = github;

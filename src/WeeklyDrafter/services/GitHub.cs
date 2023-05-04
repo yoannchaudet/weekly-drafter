@@ -1,8 +1,7 @@
-using Autofac.Features.AttributeFilters;
 using Octokit.GraphQL;
 using Octokit.GraphQL.Model;
 
-public class GitHub : IGitHub
+public class GitHub
 {
   private ActionContext Context { get; }
   private Connection Connection { get; }
@@ -16,7 +15,7 @@ public class GitHub : IGitHub
   }
 
   // Return the last few opened weekly update PRs
-  public async Task<IEnumerable<IGitHub.PullRequest>> GetLastWeeklyUpdatePRs(int first = 10)
+  public async Task<IEnumerable<PullRequest>> GetLastWeeklyUpdatePRs(int first = 10)
   {
     // PR filters
     var orderBy = new IssueOrder
@@ -32,7 +31,7 @@ public class GitHub : IGitHub
       .Repository(this.Context.GitHubRepositoryName, this.Context.GitHubRepositoryOwnerName)
       .PullRequests(orderBy: orderBy, labels: labels, states: states, first: first)
       .Nodes
-      .Select(pr => new IGitHub.PullRequest
+      .Select(pr => new PullRequest
       {
         Body = pr.Body,
         Url = pr.Url,
@@ -42,10 +41,16 @@ public class GitHub : IGitHub
   }
 
   // Return the current weekly update PR if any
-  public async Task<IGitHub.PullRequest?> GetCurrentWeeklyUpdatePR(string sortableMonday)
+  public async Task<PullRequest?> GetCurrentWeeklyUpdatePR(string sortableMonday)
   {
     return (await GetLastWeeklyUpdatePRs()).FirstOrDefault(pr =>
       Markers.FromText(pr.Body!).Where(m => m.Name == Constants.WEEKLY_UPDATE_MARKER && m.Arguments[Constants.WEEKLY_UPDATE_MARKER_DATE] == sortableMonday).Count() > 0
     );
+  }
+  public class PullRequest
+  {
+    public string? Body { get; set; }
+    public string? Url { get; set; }
+    public int Number { get; set; }
   }
 }
