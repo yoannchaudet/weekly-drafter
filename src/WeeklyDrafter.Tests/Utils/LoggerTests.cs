@@ -53,7 +53,7 @@ public class LoggerTests
     var output = new StringWriter();
     Console.SetOut(output);
     Logger.Notice("hello");
-    Assert.Equal($"::warning::hello{Environment.NewLine}", output.ToString());
+    Assert.Equal($"::notice::hello{Environment.NewLine}", output.ToString());
   }
 
   [Fact]
@@ -62,7 +62,7 @@ public class LoggerTests
     var output = new StringWriter();
     Console.SetOut(output);
     Logger.Notice("hello", new Logger.AnnotationProperties { File = "foo", StartLine = "1", EndLine = "2", StartColumn = "3", EndColumn = "4" });
-    Assert.Equal($"::warning title=,file=foo,line=1,endLine=2,col=3,endColumn=4::hello{Environment.NewLine}", output.ToString());
+    Assert.Equal($"::notice title=,file=foo,line=1,endLine=2,col=3,endColumn=4::hello{Environment.NewLine}", output.ToString());
   }
 
   [Fact]
