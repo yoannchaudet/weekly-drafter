@@ -1,5 +1,7 @@
 using Tomlyn;
 
+namespace weekly_drafter;
+
 public class Configuration
 {
   // Extra writers that should contribute to the weekly update

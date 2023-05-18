@@ -1,6 +1,8 @@
 using Octokit.GraphQL;
 using Octokit.GraphQL.Model;
 
+namespace weekly_drafter.Services;
+
 public class GitHub
 {
   public GitHub(ActionContext context)
@@ -23,7 +25,7 @@ public class GitHub
       Direction = OrderDirection.Desc,
       Field = IssueOrderField.CreatedAt
     };
-    var labels = new[] { Constants.WEEKLY_UPDATE_LABEL };
+    var labels = new[] { Constants.WeeklyUpdateLabel };
     var states = new[] { PullRequestState.Open };
 
     // Select last PRs still opened with the weekly-update label
@@ -41,12 +43,12 @@ public class GitHub
   }
 
   // Return the current weekly update PR if any
-  public async Task<PullRequest?> GetCurrentWeeklyUpdatePR(string sortableMonday)
+  public async Task<PullRequest?> GetCurrentWeeklyUpdatePr(string sortableMonday)
   {
     return (await GetLastWeeklyUpdatePRs()).FirstOrDefault(pr =>
       Markers.FromText(pr.Body!).Where(m =>
-          m.Name == Constants.WEEKLY_UPDATE_MARKER &&
-          m.Arguments[Constants.WEEKLY_UPDATE_MARKER_DATE] == sortableMonday)
+          m.Name == Constants.WeeklyUpdateMarker &&
+          m.Arguments[Constants.WeeklyUpdateMarkerDate] == sortableMonday)
         .Count() > 0
     );
   }

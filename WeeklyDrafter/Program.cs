@@ -1,4 +1,8 @@
-﻿var configuration = Configuration.ParseConfiguration(Constants.CONFIGURATION_PATH);
+﻿using weekly_drafter;
+using weekly_drafter.Commands;
+using weekly_drafter.Services;
+
+var configuration = Configuration.ParseConfiguration(Constants.ConfigurationPath);
 var actionContext = new ActionContext();
 var github = new GitHub(actionContext);
 

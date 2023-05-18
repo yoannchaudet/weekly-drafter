@@ -1,3 +1,5 @@
+namespace weekly_drafter;
+
 public class ActionContext
 {
   // Default variables from https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables
