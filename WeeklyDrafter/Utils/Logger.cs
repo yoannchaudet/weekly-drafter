@@ -46,6 +46,22 @@ public static class Logger
     Console.WriteLine(command.ToString());
   }
 
+  // Convert an annotation properties object to a dictionary
+  private static Dictionary<string, string> ToDictionary(this AnnotationProperties? annotationProps)
+  {
+    return annotationProps == null
+      ? new Dictionary<string, string>()
+      : new Dictionary<string, string>
+      {
+        { "title", annotationProps.Title ?? "" },
+        { "file", annotationProps.File ?? "" },
+        { "line", annotationProps.StartLine ?? "" },
+        { "endLine", annotationProps.EndLine ?? "" },
+        { "col", annotationProps.StartColumn ?? "" },
+        { "endColumn", annotationProps.EndColumn ?? "" }
+      };
+  }
+
   // Disposable responsible for closing a group
   private class EndGroupDisposable : IDisposable
   {
@@ -53,19 +69,6 @@ public static class Logger
     {
       IssueCommand(new CommandEnvelope("endgroup", null, ""));
     }
-  }
-
-  // Convert an annotation properties object to a dictionary
-  private static Dictionary<string, string> ToDictionary(this AnnotationProperties? annotationProps)
-  {
-    return annotationProps == null ? new Dictionary<string, string>() : new Dictionary<string, string> {
-      { "title", annotationProps.Title ?? "" },
-      { "file", annotationProps.File ?? "" },
-      { "line", annotationProps.StartLine ?? "" },
-      { "endLine", annotationProps.EndLine ?? "" },
-      { "col", annotationProps.StartColumn ?? "" },
-      { "endColumn", annotationProps.EndColumn ?? "" }
-    };
   }
 
   // Annotation properties object
@@ -82,10 +85,6 @@ public static class Logger
   // Envelope objects for console commands
   public class CommandEnvelope
   {
-    public string Command { get; }
-    public ReadOnlyDictionary<string, string>? Parameters { get; }
-    public string Message { get; }
-
     public CommandEnvelope(string command, Dictionary<string, string>? parameters, string message)
     {
       Command = command;
@@ -93,8 +92,12 @@ public static class Logger
       Message = message;
     }
 
+    public string Command { get; }
+    public ReadOnlyDictionary<string, string>? Parameters { get; }
+    public string Message { get; }
+
     // Output the envelope as a string
-    public override String ToString()
+    public override string ToString()
     {
       var builder = new StringBuilder();
       builder.Append($"::{Command}");
@@ -103,6 +106,7 @@ public static class Logger
         builder.Append(" ");
         builder.AppendJoin(",", Parameters.Select(p => $"{EscapeProperty(p.Key)}={EscapeProperty(p.Value)}"));
       }
+
       builder.Append("::");
       builder.Append(EscapeData(Message));
       return builder.ToString().TrimEnd();
@@ -110,20 +114,24 @@ public static class Logger
 
     private static string EscapeData(string value)
     {
-      return value == null ? "" : value
-        .Replace("%", "%25")
-        .Replace("\r", "%0D")
-        .Replace("\n", "%0A");
+      return value == null
+        ? ""
+        : value
+          .Replace("%", "%25")
+          .Replace("\r", "%0D")
+          .Replace("\n", "%0A");
     }
 
     private static string EscapeProperty(string value)
     {
-      return value == null ? "" : value
-        .Replace("%", "%25")
-        .Replace("\r", "%0D")
-        .Replace("\n", "%0A")
-        .Replace(":", "%3A")
-        .Replace(",", "%2C");
+      return value == null
+        ? ""
+        : value
+          .Replace("%", "%25")
+          .Replace("\r", "%0D")
+          .Replace("\n", "%0A")
+          .Replace(":", "%3A")
+          .Replace(",", "%2C");
     }
   }
 }

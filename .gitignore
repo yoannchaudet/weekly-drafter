@@ -2,3 +2,5 @@ obj/
 bin/
 .env
 **/TestResults/
+.idea
+*.DotSettings.user

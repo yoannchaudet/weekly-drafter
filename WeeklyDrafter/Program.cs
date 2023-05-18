@@ -1,7 +1,4 @@
-﻿using Scriban;
-using Tomlyn;
-
-var configuration = Configuration.ParseConfiguration(Constants.CONFIGURATION_PATH);
+﻿var configuration = Configuration.ParseConfiguration(Constants.CONFIGURATION_PATH);
 var actionContext = new ActionContext();
 var github = new GitHub(actionContext);
 

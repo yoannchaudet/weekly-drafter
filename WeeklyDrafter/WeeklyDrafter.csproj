@@ -8,9 +8,9 @@
     <PublishSingleFile>true</PublishSingleFile>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="octokit" Version="5.0.4" />
-    <PackageReference Include="octokit.graphql" Version="0.2.0-beta" />
-    <PackageReference Include="scriban" Version="5.7.0" />
-    <PackageReference Include="tomlyn" Version="0.16.2" />
+    <PackageReference Include="octokit" Version="5.0.4"/>
+    <PackageReference Include="octokit.graphql" Version="0.2.0-beta"/>
+    <PackageReference Include="scriban" Version="5.7.0"/>
+    <PackageReference Include="tomlyn" Version="0.16.2"/>
   </ItemGroup>
 </Project>

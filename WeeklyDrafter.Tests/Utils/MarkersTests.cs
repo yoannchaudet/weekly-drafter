@@ -1,6 +1,6 @@
-namespace WeeklyDrafter.Tests;
-
 using System.Collections.Specialized;
+
+namespace WeeklyDrafter.Tests.Utils;
 
 public class MarkersTests
 {
@@ -16,7 +16,6 @@ public class MarkersTests
   {
     var marker = new Markers.Marker("test", new NameValueCollection { { "foo", "bar" } });
     Assert.Equal("<!-- test foo=bar -->", Markers.ToText(marker));
-
     marker = new Markers.Marker("test", new NameValueCollection { { "foo", "bar" }, { "unsafe&", "?" } });
     Assert.Equal("<!-- test foo=bar&unsafe&=%3f -->", Markers.ToText(marker));
   }

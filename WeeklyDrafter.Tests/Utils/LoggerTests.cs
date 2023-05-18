@@ -1,9 +1,11 @@
+namespace WeeklyDrafter.Tests.Utils;
+
 public class LoggerTests
 {
   // Logging tests
 
   [Fact]
-  public void testDebug()
+  public void TestDebug()
   {
     var output = new StringWriter();
     Console.SetOut(output);
@@ -12,7 +14,7 @@ public class LoggerTests
   }
 
   [Fact]
-  public void testError()
+  public void TestError()
   {
     var output = new StringWriter();
     Console.SetOut(output);
@@ -21,16 +23,19 @@ public class LoggerTests
   }
 
   [Fact]
-  public void testErrorWithAnnotation()
+  public void TestErrorWithAnnotation()
   {
     var output = new StringWriter();
     Console.SetOut(output);
-    Logger.Error("hello", new Logger.AnnotationProperties { File = "foo", StartLine = "1", EndLine = "2", StartColumn = "3", EndColumn = "4" });
-    Assert.Equal($"::error title=,file=foo,line=1,endLine=2,col=3,endColumn=4::hello{Environment.NewLine}", output.ToString());
+    Logger.Error("hello",
+      new Logger.AnnotationProperties
+        { File = "foo", StartLine = "1", EndLine = "2", StartColumn = "3", EndColumn = "4" });
+    Assert.Equal($"::error title=,file=foo,line=1,endLine=2,col=3,endColumn=4::hello{Environment.NewLine}",
+      output.ToString());
   }
 
   [Fact]
-  public void testWarning()
+  public void TestWarning()
   {
     var output = new StringWriter();
     Console.SetOut(output);
@@ -39,16 +44,19 @@ public class LoggerTests
   }
 
   [Fact]
-  public void testWarningWithAnnotation()
+  public void TestWarningWithAnnotation()
   {
     var output = new StringWriter();
     Console.SetOut(output);
-    Logger.Warning("hello", new Logger.AnnotationProperties { File = "foo", StartLine = "1", EndLine = "2", StartColumn = "3", EndColumn = "4" });
-    Assert.Equal($"::warning title=,file=foo,line=1,endLine=2,col=3,endColumn=4::hello{Environment.NewLine}", output.ToString());
+    Logger.Warning("hello",
+      new Logger.AnnotationProperties
+        { File = "foo", StartLine = "1", EndLine = "2", StartColumn = "3", EndColumn = "4" });
+    Assert.Equal($"::warning title=,file=foo,line=1,endLine=2,col=3,endColumn=4::hello{Environment.NewLine}",
+      output.ToString());
   }
 
   [Fact]
-  public void testNotice()
+  public void TestNotice()
   {
     var output = new StringWriter();
     Console.SetOut(output);
@@ -57,16 +65,19 @@ public class LoggerTests
   }
 
   [Fact]
-  public void testNoticeWithAnnotation()
+  public void TestNoticeWithAnnotation()
   {
     var output = new StringWriter();
     Console.SetOut(output);
-    Logger.Notice("hello", new Logger.AnnotationProperties { File = "foo", StartLine = "1", EndLine = "2", StartColumn = "3", EndColumn = "4" });
-    Assert.Equal($"::notice title=,file=foo,line=1,endLine=2,col=3,endColumn=4::hello{Environment.NewLine}", output.ToString());
+    Logger.Notice("hello",
+      new Logger.AnnotationProperties
+        { File = "foo", StartLine = "1", EndLine = "2", StartColumn = "3", EndColumn = "4" });
+    Assert.Equal($"::notice title=,file=foo,line=1,endLine=2,col=3,endColumn=4::hello{Environment.NewLine}",
+      output.ToString());
   }
 
   [Fact]
-  public void testInfo()
+  public void TestInfo()
   {
     var output = new StringWriter();
     Console.SetOut(output);
@@ -75,7 +86,7 @@ public class LoggerTests
   }
 
   [Fact]
-  public void testGroup()
+  public void TestGroup()
   {
     var output = new StringWriter();
     Console.SetOut(output);
@@ -83,7 +94,10 @@ public class LoggerTests
     {
       Logger.Info("world");
     }
-    Assert.Equal($"::group name=hello::{Environment.NewLine}world{Environment.NewLine}::endgroup::{Environment.NewLine}", output.ToString());
+
+    Assert.Equal(
+      $"::group name=hello::{Environment.NewLine}world{Environment.NewLine}::endgroup::{Environment.NewLine}",
+      output.ToString());
   }
 
   // CommandEnvelope tests
@@ -113,7 +127,8 @@ public class LoggerTests
   [Fact]
   public void CommandEnvelopeParametersEscapingToString()
   {
-    var envelope = new Logger.CommandEnvelope("test", new Dictionary<string, string> { { "a", "b:" }, { "c", "d," } }, "\r\n%hello%");
+    var envelope = new Logger.CommandEnvelope("test", new Dictionary<string, string> { { "a", "b:" }, { "c", "d," } },
+      "\r\n%hello%");
     Assert.Equal("::test a=b%3A,c=d%2C::%0D%0A%25hello%25", envelope.ToString());
   }
 }

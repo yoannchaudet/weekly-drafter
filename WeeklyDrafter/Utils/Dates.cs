@@ -8,10 +8,7 @@ public static class Dates
     var now = DateTime.UtcNow;
 
     // Let's go back in time (this cannot happen for too long right?)
-    while (now.DayOfWeek != DayOfWeek.Monday)
-    {
-      now = now.AddDays(-1);
-    }
+    while (now.DayOfWeek != DayOfWeek.Monday) now = now.AddDays(-1);
 
     return now;
   }
@@ -20,13 +17,13 @@ public static class Dates
   public static string ToEnglish(this DateTime dateTime)
   {
     return dateTime.ToString("MMMM d, yyyy",
-                   CultureInfo.CreateSpecificCulture("en-us"));
+      CultureInfo.CreateSpecificCulture("en-us"));
   }
 
   // Format a date time to a sortable format (e.g. "2023-04-17").
   public static string ToSortable(this DateTime dateTime)
   {
     return dateTime.ToString("yyyy-MM-dd",
-                   CultureInfo.CreateSpecificCulture("en-us"));
+      CultureInfo.CreateSpecificCulture("en-us"));
   }
 }

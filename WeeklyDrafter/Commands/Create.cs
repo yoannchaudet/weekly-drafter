@@ -1,14 +1,14 @@
 public class Create
 {
+  public Create(Configuration configuration, GitHub github)
+  {
+    Configuration = configuration;
+    GitHub = github;
+  }
+
   private Configuration Configuration { get; }
 
   private GitHub GitHub { get; }
-
-  public Create(Configuration configuration, GitHub github)
-  {
-    this.Configuration = configuration;
-    this.GitHub = github;
-  }
 
   public async Task Run()
   {

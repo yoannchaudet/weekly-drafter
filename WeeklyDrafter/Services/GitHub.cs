@@ -3,16 +3,16 @@ using Octokit.GraphQL.Model;
 
 public class GitHub
 {
-  private ActionContext Context { get; }
-  private Connection Connection { get; }
-
   public GitHub(ActionContext context)
   {
-    this.Context = context;
+    Context = context;
 
     // Create a connection
-    this.Connection = new Connection(new ProductHeaderValue("weekly-drafter"), context.GitHubToken);
+    Connection = new Connection(new ProductHeaderValue("weekly-drafter"), context.GitHubToken);
   }
+
+  private ActionContext Context { get; }
+  private Connection Connection { get; }
 
   // Return the last few opened weekly update PRs
   public async Task<IEnumerable<PullRequest>> GetLastWeeklyUpdatePRs(int first = 10)
@@ -23,19 +23,19 @@ public class GitHub
       Direction = OrderDirection.Desc,
       Field = IssueOrderField.CreatedAt
     };
-    var labels = new string[] { Constants.WEEKLY_UPDATE_LABEL };
-    var states = new PullRequestState[] { PullRequestState.Open };
+    var labels = new[] { Constants.WEEKLY_UPDATE_LABEL };
+    var states = new[] { PullRequestState.Open };
 
     // Select last PRs still opened with the weekly-update label
     var query = new Query()
-      .Repository(this.Context.GitHubRepositoryName, this.Context.GitHubRepositoryOwnerName)
+      .Repository(Context.GitHubRepositoryName, Context.GitHubRepositoryOwnerName)
       .PullRequests(orderBy: orderBy, labels: labels, states: states, first: first)
       .Nodes
       .Select(pr => new PullRequest
       {
         Body = pr.Body,
         Url = pr.Url,
-        Number = pr.Number,
+        Number = pr.Number
       });
     return await Connection.Run(query);
   }
@@ -44,9 +44,13 @@ public class GitHub
   public async Task<PullRequest?> GetCurrentWeeklyUpdatePR(string sortableMonday)
   {
     return (await GetLastWeeklyUpdatePRs()).FirstOrDefault(pr =>
-      Markers.FromText(pr.Body!).Where(m => m.Name == Constants.WEEKLY_UPDATE_MARKER && m.Arguments[Constants.WEEKLY_UPDATE_MARKER_DATE] == sortableMonday).Count() > 0
+      Markers.FromText(pr.Body!).Where(m =>
+          m.Name == Constants.WEEKLY_UPDATE_MARKER &&
+          m.Arguments[Constants.WEEKLY_UPDATE_MARKER_DATE] == sortableMonday)
+        .Count() > 0
     );
   }
+
   public class PullRequest
   {
     public string? Body { get; set; }
