@@ -3,6 +3,7 @@ namespace weekly_drafter;
 public class ActionContext
 {
   // Default variables from https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables
+  public string GitHubWorkspace => GetFromEnvironment("GITHUB_WORKSPACE", true)!;
   public string GitHubToken => GetFromEnvironment("GITHUB_TOKEN", true)!;
   public string GitHubRepository => GetFromEnvironment("GITHUB_REPOSITORY", true)!;
   public string GitHubRepositoryOwnerName => GitHubRepository.Split("/")[0];

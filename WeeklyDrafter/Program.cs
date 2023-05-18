@@ -2,8 +2,10 @@
 using weekly_drafter.Commands;
 using weekly_drafter.Services;
 
-var configuration = Configuration.ParseConfiguration(Constants.ConfigurationPath);
+Console.WriteLine(("Hello there"));
 var actionContext = new ActionContext();
+var configurationPath = Path.Join(actionContext.GitHubWorkspace, Constants.ConfigurationPath);
+var configuration = Configuration.ParseConfiguration(configurationPath);
 var github = new GitHub(actionContext);
 
 // Parse provided action on the command line (case insensitive)

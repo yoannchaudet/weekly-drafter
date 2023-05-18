@@ -46,10 +46,9 @@ public class GitHub
   public async Task<PullRequest?> GetCurrentWeeklyUpdatePr(string sortableMonday)
   {
     return (await GetLastWeeklyUpdatePRs()).FirstOrDefault(pr =>
-      Markers.FromText(pr.Body!).Where(m =>
-          m.Name == Constants.WeeklyUpdateMarker &&
-          m.Arguments[Constants.WeeklyUpdateMarkerDate] == sortableMonday)
-        .Count() > 0
+      Markers.FromText(pr.Body!)
+        .Count(m => m.Name == Constants.WeeklyUpdateMarker &&
+                    m.Arguments[Constants.WeeklyUpdateMarkerDate] == sortableMonday) > 0
     );
   }
 
