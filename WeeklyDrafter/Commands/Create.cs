@@ -1,7 +1,7 @@
 using System.Collections.Specialized;
 using System.Text;
-using Scriban;
 using weekly_drafter.Services;
+using weekly_drafter.Utils;
 
 namespace weekly_drafter.Commands;
 
@@ -41,21 +41,15 @@ public class Create
     // Parse the template file and render it
     var templatePath = Path.Join(ActionContext.GitHubWorkspace, Constants.WeeklyTemplatePath);
     if (!File.Exists(templatePath))
-    {
-      Logger.Error("Unable to find a template file", new Logger.AnnotationProperties { File = templatePath });
-      return;
-    }
-
-    var template = Template.ParseLiquid(await File.ReadAllTextAsync(templatePath));
+      Logger.Error("Unable to find a template file", new Logger.AnnotationProperties { File = templatePath }, true);
 
     // Render the template
-    var templateInputs = new
+    var renderedTemplate = new StringBuilder(Templates.RenderLiquidFromFile(templatePath, new
     {
       config = Configuration,
       mondayEnglish = Dates.GetMonday().ToEnglish(),
       mondaySortable = Dates.GetMonday().ToSortable()
-    };
-    var renderedTemplate = new StringBuilder((await template.RenderAsync(templateInputs)).Trim());
+    }));
 
     // Append a marker with the date to the template
     var weeklyUpdateMarker = new Markers.Marker(Constants.WeeklyUpdateMarker,

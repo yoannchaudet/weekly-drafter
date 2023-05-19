@@ -24,9 +24,9 @@ category: Weekly
 
 {% assign sorted_teams = config.teams | array.sort "name" -%}
 {%- for team in sorted_teams -%}
-### {{ team.name }}
+  ### {{ team.name }}
 
-<!-- Team highlight, cc {{ team.writers | array.sort | array.join ", " }} -->
+  <!-- Team highlight, cc {{ team.writers | array.sort | array.join ", " }} -->
 
 {% endfor -%}
 

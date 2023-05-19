@@ -4,25 +4,27 @@ using System.Text;
 public static class Logger
 {
   // Write a debug message
-  public static void Debug(string message)
+  public static void Debug(string? message)
   {
     IssueCommand(new CommandEnvelope("debug", null, message));
   }
 
   // Write an error message (potentially along with an annotation)
-  public static void Error(string message, AnnotationProperties? annotationProps = null)
+  public static void Error(string? message, AnnotationProperties? annotationProps = null, bool throws = false)
   {
     IssueCommand(new CommandEnvelope("error", annotationProps.ToDictionary(), message));
+    if (throws)
+      throw new Exception(message);
   }
 
   // Write a warning message (potentially along with an annotation)
-  public static void Warning(string message, AnnotationProperties? annotationProps = null)
+  public static void Warning(string? message, AnnotationProperties? annotationProps = null)
   {
     IssueCommand(new CommandEnvelope("warning", annotationProps.ToDictionary(), message));
   }
 
   // Write a notice message (potentially along with an annotation)
-  public static void Notice(string message, AnnotationProperties? annotationProps = null)
+  public static void Notice(string? message, AnnotationProperties? annotationProps = null)
   {
     IssueCommand(new CommandEnvelope("notice", annotationProps.ToDictionary(), message));
   }
@@ -85,7 +87,7 @@ public static class Logger
   // Envelope objects for console commands
   public class CommandEnvelope
   {
-    public CommandEnvelope(string command, Dictionary<string, string>? parameters, string message)
+    public CommandEnvelope(string command, Dictionary<string, string>? parameters, string? message)
     {
       Command = command;
       Parameters = parameters?.AsReadOnly();
@@ -94,7 +96,7 @@ public static class Logger
 
     public string Command { get; }
     public ReadOnlyDictionary<string, string>? Parameters { get; }
-    public string Message { get; }
+    public string? Message { get; }
 
     // Output the envelope as a string
     public override string ToString()
@@ -103,7 +105,7 @@ public static class Logger
       builder.Append($"::{Command}");
       if (Parameters?.Count > 0)
       {
-        builder.Append(" ");
+        builder.Append(' ');
         builder.AppendJoin(",", Parameters.Select(p => $"{EscapeProperty(p.Key)}={EscapeProperty(p.Value)}"));
       }
 
@@ -112,7 +114,7 @@ public static class Logger
       return builder.ToString().TrimEnd();
     }
 
-    private static string EscapeData(string value)
+    private static string EscapeData(string? value)
     {
       return value == null
         ? ""
@@ -122,7 +124,7 @@ public static class Logger
           .Replace("\n", "%0A");
     }
 
-    private static string EscapeProperty(string value)
+    private static string EscapeProperty(string? value)
     {
       return value == null
         ? ""
