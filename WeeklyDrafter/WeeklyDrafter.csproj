@@ -5,7 +5,6 @@
     <RootNamespace>weekly_drafter</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <PublishSingleFile>true</PublishSingleFile>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="octokit" Version="5.0.4"/>
