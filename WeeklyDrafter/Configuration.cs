@@ -1,3 +1,4 @@
+using System.Collections.Specialized;
 using Tomlyn;
 using weekly_drafter.Utils;
 
@@ -48,5 +49,18 @@ public class Configuration
 
     // Writers responsible for the team's weekly update
     public List<string>? Writers { get; set; }
+
+    // Return a placeholder
+    public string Marker
+    {
+      get
+      {
+        var args = new NameValueCollection();
+          if (Writers != null)
+            args.Add("writers", string.Join(',', Writers!));
+          var marker = new Markers.Marker("placeholder", args);
+          return Markers.ToText(marker);
+       }
+    }
   }
 }
