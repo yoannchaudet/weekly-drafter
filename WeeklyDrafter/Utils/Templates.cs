@@ -1,5 +1,6 @@
 using System.Text;
 using Scriban;
+using Scriban.Runtime;
 
 namespace weekly_drafter.Utils;
 
@@ -37,7 +38,26 @@ public static class Templates
           File = template.SourceFilePath
         }, true);
 
+    // Enrich the passed context
+    var enrichedContext = new ScriptObject();
+    enrichedContext.Import(context);
+    enrichedContext.Add("dates", new DateUtils());
+
     // Return the rendered template
-    return template.Render(context).Trim();
+    return template.Render(enrichedContext).Trim();
+  }
+
+  // Date utils script object for templating
+  private class DateUtils : ScriptObject
+  {
+    public static string Sortable(DateTime date)
+    {
+      return date.ToSortable();
+    }
+
+    public static string English(DateTime date)
+    {
+      return date.ToEnglish();
+    }
   }
 }
