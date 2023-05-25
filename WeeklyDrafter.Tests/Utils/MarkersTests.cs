@@ -26,6 +26,7 @@ public class MarkersTests
     Assert.Single(markers);
     Assert.Equal("hello", markers.First().Name);
     Assert.Equal(0, markers.First().Start);
+    Assert.Equal(0, markers.First().Line);
     Assert.Equal(text.Length, markers.First().Length);
     Assert.Equal(text.Length, markers.First().End);
   }
@@ -52,14 +53,17 @@ public class MarkersTests
     // marker1
     Assert.Equal("2020-05-16", marker1.Arguments.First(a => a.Key == "date").Value);
     Assert.Equal(13, marker1.Start);
+    Assert.Equal(3, marker1.Line);
     Assert.Equal("<!-- marker1 date=2020-05-16 -->".Length, marker1.Length);
 
     // marker2
     Assert.Empty(marker2.Arguments);
     Assert.Equal(68, marker2.Start);
+    Assert.Equal(6, marker2.Line);
 
     // marker3
     Assert.Empty(marker3.Arguments);
     Assert.Equal(88, marker3.Start);
+    Assert.Equal(8, marker3.Line);
   }
 }

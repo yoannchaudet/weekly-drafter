@@ -11,6 +11,9 @@ public static class Constants
   // Weekly PR template path
   public const string WeeklyPRTemplatePath = ".github/weekly-drafter/weekly.pr.liquid";
 
+  // Weekly placeholder template path
+  public const string WeeklyPlaceholderTemplatePath = ".github/weekly-drafter/weekly.placeholder.liquid";
+
   // Label that PRs are created with
   public const string WeeklyUpdateLabel = "weekly-update";
 

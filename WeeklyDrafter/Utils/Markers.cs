@@ -34,7 +34,9 @@ public static class Markers
       var args = HttpUtility.ParseQueryString(m.Groups["args"].Value);
       var arguments = new Dictionary<string, string>();
       foreach (string? o in args) arguments.Add(o!, args[o!]!);
-      return new MarkerSpan(name, arguments, m.Index, m.Length);
+      var line = Regex.Matches(text.Substring(0, m.Index), @"\n").Cast<Match>().Count();
+      // Note: GitHub uses 1-index lines so increment
+      return new MarkerSpan(name, arguments, m.Index, m.Length, line + 1);
     });
   }
 
@@ -68,14 +70,16 @@ public static class Markers
 
   public class MarkerSpan : Marker
   {
-    public MarkerSpan(string name, Dictionary<string, string> arguments, int start, int length) : base(name, arguments)
+    public MarkerSpan(string name, Dictionary<string, string> arguments, int start, int length, int line) : base(name, arguments)
     {
       Start = start;
       Length = length;
+      Line = line;
     }
 
     public int Start { get; }
     public int Length { get; }
+    public int Line { get;  }
     public int End => Start + Length;
   }
 }

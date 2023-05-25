@@ -6,6 +6,7 @@ using weekly_drafter.Utils;
 using Connection = Octokit.GraphQL.Connection;
 using Label = Octokit.Label;
 using ProductHeaderValue = Octokit.ProductHeaderValue;
+using PullRequestReviewEvent = Octokit.GraphQL.Model.PullRequestReviewEvent;
 
 namespace weekly_drafter.Services;
 
@@ -174,7 +175,7 @@ public class GitHub
       new Markers.Marker(Constants.WeeklyUpdateMarker).AddArgument(Constants.WeeklyUpdateMarkerDate,
         templatesContext.Date.ToSortable())));
 
-    // Create a pull request and return the object
+    // Create a pull request
     var createPullRequest = new Mutation().CreatePullRequest(new CreatePullRequestInput
     {
       RepositoryId = repository.RepositoryId!.Value,
@@ -192,12 +193,46 @@ public class GitHub
       Id = pr.PullRequest.Id.Value
     });
     var pr = await GraphQL.Run(createPullRequest);
+
+    // Add the weekly label to the PR
     var labelOid = createOrUpdateLabel.GetAwaiter().GetResult();
-    var x = new Mutation().AddLabelsToLabelable(new AddLabelsToLabelableInput
+    var addLabelsToPr = new Mutation().AddLabelsToLabelable(new AddLabelsToLabelableInput
     {
       LabelableId = new ID(pr.Id), LabelIds = new[] { new ID(labelOid) }
     }).Select(m => m.ClientMutationId);
-    await GraphQL.Run(x);
+    await GraphQL.Run(addLabelsToPr);
+
+    // Create comments for each placeholder marker
+    var threads = new List<DraftPullRequestReviewThread>();
+    foreach (var placeholder in Markers.FromText(content).Where(marker => marker.Name == "placeholder"))
+    {
+      // Render the body of the comment
+      var placeholderPath = Path.Join(ActionContext.GitHubWorkspace, Constants.WeeklyPlaceholderTemplatePath);
+      var placeholderContent = Templates.RenderLiquidFromFile(placeholderPath, new
+      {
+        Writers = placeholder.Arguments
+          .FirstOrDefault(a => a.Key == "writers", new KeyValuePair<string, string>(string.Empty, "")).Value.Split(",")
+      });
+
+      // Accumulate a thread
+      threads.Add(new DraftPullRequestReviewThread()
+      {
+        Path = Configuration.RenderedWeeklyUpdatePath,
+        Line = placeholder.Line,
+        Side = DiffSide.Right,
+        Body = placeholderContent
+      });
+    }
+
+    var addPullRequestReview = new Mutation().AddPullRequestReview(new AddPullRequestReviewInput()
+    {
+      PullRequestId = new ID(pr.Id),
+      Event = PullRequestReviewEvent.Comment,
+      Threads = threads
+    }).Select(m => m.ClientMutationId);
+    await GraphQL.Run(addPullRequestReview);
+
+    // Return the PR
     return pr;
   }
 
