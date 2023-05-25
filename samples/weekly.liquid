@@ -1,35 +1,30 @@
-<!--
-  This file is a Liquid template.
-  Learn more about the syntax at https://shopify.github.io/liquid/.
+{% comment %}
+This file is a Liquid template.
+Learn more about the syntax at https://shopify.github.io/liquid/.
 
-  The following variables are available:
+The following variables are available:
 
-   - monday_english: The date (i.e. Monday) formatted in English
-   - monday_sortable: The date (i.e. Monday) formatted in sortable format
-   - config: The whole configuration file
--->
+- today: The date time object for the weekly update
+- config: The whole configuration file
+{% endcomment %}
 
 <!--
 repository: https://github.com/<org>/<repo>
 category: Weekly
 -->
 
-# Week of {{ monday_english }}
+# Week of {{ date | dates.english }}
 
 ## In case you missed it
 
-<!-- Any other posts or important information worth highlighting here? -->
+{{ markers.new 'placeholder' | markers.join_argument 'writers' config.additional_writers | markers.to_string }}
 
 ## What's going on this week
 
 {% assign sorted_teams = config.teams | array.sort "name" -%}
 {%- for team in sorted_teams -%}
-  ### {{ team.name }}
+### {{ team.name }}
 
-  <!-- Team highlight, cc {{ team.writers | array.sort | array.join ", " }} -->
+{{ markers.new 'placeholder' | markers.join_argument 'writers' team.writers | markers.to_string }}
 
 {% endfor -%}
-
-## Misc
-
-<!-- Anything extra to add? -->

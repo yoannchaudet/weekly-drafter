@@ -1,7 +1,4 @@
-using System.Collections.Specialized;
-using System.Text;
 using weekly_drafter.Services;
-using weekly_drafter.Utils;
 
 namespace weekly_drafter.Commands;
 

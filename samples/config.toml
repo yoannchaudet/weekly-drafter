@@ -5,8 +5,8 @@
 
 # The path where weekly updates should be created (in the hosting repository)
 # Note this string is a Liquid template and `{{ date }}` will be replaced by
-# the date of the week in a sortable format (e.g. 2023-04-17).
-weekly_update_path = "/discussions/{{date}} weekly.md"
+# the date of the week.
+weekly_update_path = "discussions/{{ date | dates.sortable }} weekly.md"
 
 # List of (extra) users that should be included as PR reviewers
 additional_writers = ["handle1", "handle2"]
@@ -15,4 +15,4 @@ additional_writers = ["handle1", "handle2"]
 # repeat this whole block for each teams you have)
 [[teams]]
 name = "Team name"
-writers = ["handle1", "handle2"]
+writers = ["handle3"]

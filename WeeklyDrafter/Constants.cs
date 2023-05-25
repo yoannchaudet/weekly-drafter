@@ -13,6 +13,7 @@ public static class Constants
 
   // Label that PRs are created with
   public const string WeeklyUpdateLabel = "weekly-update";
+
   // Label color that PRs are created with
   public const string WeeklyUpdateLabelColor = "A511C0";
 

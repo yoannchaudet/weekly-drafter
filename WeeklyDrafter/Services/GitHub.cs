@@ -1,4 +1,3 @@
-using System.Collections.Specialized;
 using System.Text;
 using Octokit;
 using Octokit.GraphQL;
@@ -30,54 +29,37 @@ public class GitHub
 
   private ActionContext ActionContext { get; }
   private Connection GraphQL { get; }
-
   private GitHubClient Rest { get; }
-
   private Configuration Configuration { get; }
 
   // Return the last few opened weekly update PRs
   public async Task<IEnumerable<PullRequest>> GetLastWeeklyUpdatePRs(int first = 10)
   {
     // PR filters
-    var orderBy = new IssueOrder
-    {
-      Direction = OrderDirection.Desc,
-      Field = IssueOrderField.CreatedAt
-    };
+    var orderBy = new IssueOrder { Direction = OrderDirection.Desc, Field = IssueOrderField.CreatedAt };
     var labels = new[] { Constants.WeeklyUpdateLabel };
     var states = new[] { PullRequestState.Open };
 
     // Select last PRs still opened with the weekly-update label
-    var query = new Query()
-      .Repository(ActionContext.GitHubRepositoryName, ActionContext.GitHubRepositoryOwnerName)
-      .PullRequests(orderBy: orderBy, labels: labels, states: states, first: first)
-      .Nodes
-      .Select(pr => new PullRequest
-      {
-        Body = pr.Body,
-        Url = pr.Url,
-        Number = pr.Number
-      });
+    var query = new Query().Repository(ActionContext.GitHubRepositoryName, ActionContext.GitHubRepositoryOwnerName)
+      .PullRequests(orderBy: orderBy, labels: labels, states: states, first: first).Nodes
+      .Select(pr => new PullRequest { Body = pr.Body, Url = pr.Url, Number = pr.Number });
     return await GraphQL.Run(query);
   }
 
   // Return the current weekly update PR if any
   public async Task<PullRequest?> GetCurrentWeeklyUpdatePR(string sortableMonday)
   {
-    return (await GetLastWeeklyUpdatePRs()).FirstOrDefault(pr =>
-      Markers.FromText(pr.Body!)
-        .Count(m => m.Name == Constants.WeeklyUpdateMarker &&
-                    m.Arguments[Constants.WeeklyUpdateMarkerDate] == sortableMonday) > 0
-    );
+    return (await GetLastWeeklyUpdatePRs()).FirstOrDefault(pr => Markers.FromText(pr.Body!).Any(m =>
+      m.Name == Constants.WeeklyUpdateMarker &&
+      m.Arguments.Any(a => a.Key == Constants.WeeklyUpdateMarkerDate && a.Value == sortableMonday)));
   }
 
   // Return basic information about the current repository (e.g. default branch's name)
   public async Task<Repository> GetRepository()
   {
-    var query = new Query()
-      .Repository(ActionContext.GitHubRepositoryName, ActionContext.GitHubRepositoryOwnerName)
-      .DefaultBranchRef
-      .Select(reference => new Repository
+    var query = new Query().Repository(ActionContext.GitHubRepositoryName, ActionContext.GitHubRepositoryOwnerName)
+      .DefaultBranchRef.Select(reference => new Repository
       {
         RepositoryId = reference.Repository.Id,
         DefaultBranchRef = reference.Name,
@@ -98,8 +80,7 @@ public class GitHub
       {
         Logger.Info("Try to fetch existing label");
         existingLabel = await Rest.Issue.Labels.Get(ActionContext.GitHubRepositoryOwnerName,
-          ActionContext.GitHubRepositoryName,
-          Constants.WeeklyUpdateLabel);
+          ActionContext.GitHubRepositoryName, Constants.WeeklyUpdateLabel);
       }
       catch (NotFoundException)
       {
@@ -109,23 +90,18 @@ public class GitHub
       if (existingLabel == null)
       {
         Logger.Info("Create label");
-        return (
-          await Rest.Issue.Labels.Create(
-            ActionContext.GitHubRepositoryOwnerName,
-            ActionContext.GitHubRepositoryName,
-            new NewLabel(Constants.WeeklyUpdateLabel, Constants.WeeklyUpdateLabelColor))).NodeId;
+        return (await Rest.Issue.Labels.Create(ActionContext.GitHubRepositoryOwnerName,
+          ActionContext.GitHubRepositoryName,
+          new NewLabel(Constants.WeeklyUpdateLabel, Constants.WeeklyUpdateLabelColor))).NodeId;
       }
 
       // Update label
       if (existingLabel.Color != Constants.WeeklyUpdateLabelColor)
       {
         Logger.Info("Update label");
-        return (
-          await Rest.Issue.Labels.Update(
-            ActionContext.GitHubRepositoryOwnerName,
-            ActionContext.GitHubRepositoryName,
-            Constants.WeeklyUpdateLabel,
-            new LabelUpdate(Constants.WeeklyUpdateLabel, Constants.WeeklyUpdateLabelColor))).NodeId;
+        return (await Rest.Issue.Labels.Update(ActionContext.GitHubRepositoryOwnerName,
+          ActionContext.GitHubRepositoryName, Constants.WeeklyUpdateLabel,
+          new LabelUpdate(Constants.WeeklyUpdateLabel, Constants.WeeklyUpdateLabelColor))).NodeId;
       }
 
       // Keep existing label
@@ -145,9 +121,8 @@ public class GitHub
     // Shared template context
     var templatesContext = new
     {
-      config = Configuration,
-      mondayEnglish = Dates.GetMonday().ToEnglish(),
-      mondaySortable = Dates.GetMonday().ToSortable()
+      Config = Configuration,
+      Date = Dates.GetMonday()
     };
 
     // Create a new branch (starting at the default branch of the repository)
@@ -157,9 +132,7 @@ public class GitHub
     var createRef = new Mutation()
       .CreateRef(new CreateRefInput
       {
-        RepositoryId = repository.RepositoryId!.Value,
-        Name = branchRef,
-        Oid = repository.DefaultBranchOid
+        RepositoryId = repository.RepositoryId!.Value, Name = branchRef, Oid = repository.DefaultBranchOid
       }).Select(reference => reference.Ref.Id);
     var branchRefId = await GraphQL.Run(createRef);
 
@@ -168,32 +141,25 @@ public class GitHub
     var content = Templates.RenderLiquidFromFile(contentPath, templatesContext);
 
     //  Add a commit on that new branch with the weekly update's content
-    var createCommitOnBranch = new Mutation()
-      .CreateCommitOnBranch(new CreateCommitOnBranchInput
+    var createCommitOnBranch = new Mutation().CreateCommitOnBranch(new CreateCommitOnBranchInput
+    {
+      Branch = new CommittableBranch { Id = branchRefId },
+      Message = new CommitMessage { Headline = "Add weekly update template" },
+      ExpectedHeadOid = repository.DefaultBranchOid,
+      FileChanges = new FileChanges
       {
-        Branch = new CommittableBranch
+        // Add the weekly update file, the content needs to be base64-encoded
+        Additions = new[]
         {
-          Id = branchRefId
-        },
-        Message = new CommitMessage
-        {
-          Headline = "Add weekly update template"
-        },
-        ExpectedHeadOid = repository.DefaultBranchOid,
-        FileChanges = new FileChanges
-        {
-          // Add the weekly update file, the content needs to be base64-encoded
-          Additions = new[]
+          new FileAddition
           {
-            new FileAddition
-            {
-              Path = Configuration.RenderedWeeklyUpdatePath,
-              Contents = Convert.ToBase64String(Encoding.UTF8.GetBytes(content))
-            }
-          },
-          Deletions = new FileDeletion[] { }
-        }
-      }).Select(c => c.Commit.Oid);
+            Path = Configuration.RenderedWeeklyUpdatePath,
+            Contents = Convert.ToBase64String(Encoding.UTF8.GetBytes(content))
+          }
+        },
+        Deletions = new FileDeletion[] { }
+      }
+    }).Select(c => c.Commit.Oid);
     await GraphQL.Run(createCommitOnBranch);
 
     // Render the body of the PR
@@ -201,8 +167,9 @@ public class GitHub
     var body = new StringBuilder(Templates.RenderLiquidFromFile(bodyPath, templatesContext));
     body.AppendLine();
     body.AppendLine("<!-- Metadata, do not remove -->");
-    body.AppendLine(Markers.ToText(new Markers.Marker(Constants.WeeklyUpdateMarker,
-      new NameValueCollection { { Constants.WeeklyUpdateMarkerDate, templatesContext.mondaySortable } })));
+    body.AppendLine(Markers.ToText(
+      new Markers.Marker(Constants.WeeklyUpdateMarker).AddArgument(Constants.WeeklyUpdateMarkerDate,
+        templatesContext.Date.ToSortable())));
 
     // Create a pull request and return the object
     var createPullRequest = new Mutation().CreatePullRequest(new CreatePullRequestInput
@@ -215,24 +182,19 @@ public class GitHub
       MaintainerCanModify = true,
       Draft = false
     }).Select(pr => new PullRequest
-      {
-        Body = pr.PullRequest.Body,
-        Url = pr.PullRequest.Url,
-        Number = pr.PullRequest.Number,
-        Id = pr.PullRequest.Id.Value
-      }
-    );
-    var pr = await GraphQL.Run(createPullRequest);
-
-    var labelOid = createOrUpdateLabel.GetAwaiter().GetResult();
-
-    var x = new Mutation().AddLabelsToLabelable(new AddLabelsToLabelableInput()
     {
-      LabelableId = new ID(pr.Id),
-      LabelIds = new[] { new ID(labelOid) }
+      Body = pr.PullRequest.Body,
+      Url = pr.PullRequest.Url,
+      Number = pr.PullRequest.Number,
+      Id = pr.PullRequest.Id.Value
+    });
+    var pr = await GraphQL.Run(createPullRequest);
+    var labelOid = createOrUpdateLabel.GetAwaiter().GetResult();
+    var x = new Mutation().AddLabelsToLabelable(new AddLabelsToLabelableInput
+    {
+      LabelableId = new ID(pr.Id), LabelIds = new[] { new ID(labelOid) }
     }).Select(m => m.ClientMutationId);
     await GraphQL.Run(x);
-
     return pr;
   }
 
@@ -241,7 +203,7 @@ public class GitHub
     public string? Body { get; init; }
     public string? Url { get; init; }
     public int Number { get; init; }
-    public string Id { get; init; }
+    public string? Id { get; init; }
   }
 
   public class Repository
