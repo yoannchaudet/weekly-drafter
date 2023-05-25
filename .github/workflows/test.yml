@@ -25,13 +25,13 @@ jobs:
           dotnet-version: 7.0.x
 
       - name: Restore dependencies
-        run: dotnet restore ./src/WeeklyDrafter.sln
+        run: dotnet restore ./WeeklyDrafter.sln
 
       - name: Build
-        run: dotnet build ./src/WeeklyDrafter.sln --no-restore
+        run: dotnet build ./WeeklyDrafter.sln --no-restore
 
       - name: Test
-        run: dotnet test ./src/WeeklyDrafter.Tests/WeeklyDrafter.Tests.csproj --no-build --logger:trx
+        run: dotnet test ./WeeklyDrafter.Tests/WeeklyDrafter.Tests.csproj --no-build --logger:trx
 
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
