@@ -63,7 +63,8 @@ public class GitHub
       {
         RepositoryId = reference.Repository.Id,
         DefaultBranchRef = reference.Name,
-        DefaultBranchOid = reference.Target.Oid
+        DefaultBranchOid = reference.Target.Oid,
+        Url = reference.Repository.Url
       });
     return await GraphQL.Run(query);
   }
@@ -118,13 +119,6 @@ public class GitHub
     // Create or update the label in the background
     var createOrUpdateLabel = Task.Run(async () => await CreateOrUpdateLabel());
 
-    // Shared template context
-    var templatesContext = new
-    {
-      Config = Configuration,
-      Date = Dates.GetMonday()
-    };
-
     // Create a new branch (starting at the default branch of the repository)
     // and fetch it's reference id
     var branchName = $"{Dates.GetMonday().ToSortable()}__{Guid.NewGuid().ToString()}";
@@ -135,6 +129,15 @@ public class GitHub
         RepositoryId = repository.RepositoryId!.Value, Name = branchRef, Oid = repository.DefaultBranchOid
       }).Select(reference => reference.Ref.Id);
     var branchRefId = await GraphQL.Run(createRef);
+
+    // Shared template context
+    var templatesContext = new
+    {
+      Config = Configuration,
+      Date = Dates.GetMonday(),
+      BranchName = branchName,
+      RepoUrl = repository.Url
+    };
 
     // Render the weekly update
     var contentPath = Path.Join(ActionContext.GitHubWorkspace, Constants.WeeklyTemplatePath);
@@ -211,5 +214,6 @@ public class GitHub
     public ID? RepositoryId { get; init; }
     public string? DefaultBranchRef { get; init; }
     public string? DefaultBranchOid { get; init; }
+    public string? Url { get; init; }
   }
 }

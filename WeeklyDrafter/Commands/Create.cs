@@ -34,6 +34,7 @@ public class Create
     //
     // Open the PR!
     //
-    await GitHub.CreatePullRequest();
+    pr = await GitHub.CreatePullRequest();
+    Logger.Info($"PR created at {pr.Url}!");
   }
 }
