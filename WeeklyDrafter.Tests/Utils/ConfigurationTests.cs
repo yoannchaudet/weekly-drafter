@@ -8,7 +8,7 @@ public class ConfigurationTests
   public void RenderedWeeklyUpdatePath()
   {
     Assert.Null(new Configuration().RenderedWeeklyUpdatePath);
-    var conf = new Configuration { WeeklyUpdatePath = "some/path/{{date}}.md" };
+    var conf = new Configuration { WeeklyUpdatePath = "some/path/{{date | dates.sortable }}.md" };
     Assert.Equal($"some/path/{Dates.GetMonday().ToSortable()}.md", conf.RenderedWeeklyUpdatePath);
   }
 }

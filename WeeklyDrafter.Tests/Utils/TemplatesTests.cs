@@ -41,7 +41,7 @@ public class TemplatesTests
   [Fact]
   public void MarkerJoining()
   {
-    var people = new[] { "1", "2" };
+    var people = new[] { "1", "2" }.ToList();
     var separator = '-';
     var marker = new Markers.Marker("hello").AddArgument("foo", "bar")
       .AddArgument("people", string.Join(separator, people));
