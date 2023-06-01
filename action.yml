@@ -14,3 +14,5 @@ runs:
   image: Dockerfile
   args:
     - ${{ inputs.action }}
+  env:
+    GITHUB_TOKEN: ${{ inputs.default_token }}
