@@ -28,4 +28,4 @@ RUN apk upgrade musl
 USER dotnetuser
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["./WeeklyDrafter"]
+ENTRYPOINT ["/app/WeeklyDrafter"]
