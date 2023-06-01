@@ -14,7 +14,6 @@ RUN dotnet publish WeeklyDrafter/WeeklyDrafter.csproj -c Release -o /app/publish
   --no-restore \
   --runtime $RUNTIME \
   --self-contained true \
-  /p:PublishTrimmed=true \
   /p:PublishSingleFile=true
 
 #
