@@ -10,7 +10,7 @@ WORKDIR /src
 COPY . .
 RUN ls -la && pwd
 RUN dotnet restore --runtime $RUNTIME
-RUN dotnet publish -c Release -o /app/publish \
+RUN dotnet publish WeeklyDrafter/WeeklyDrafter.csproj -c Release -o /app/publish \
   --no-restore \
   --runtime $RUNTIME \
   --self-contained true \
@@ -28,4 +28,4 @@ RUN apk upgrade musl
 USER dotnetuser
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["./weekly-drafter"]
+ENTRYPOINT ["./WeeklyDrafter"]

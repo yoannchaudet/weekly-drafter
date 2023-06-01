@@ -20,6 +20,7 @@ public class Validate
   public async Task Run()
   {
    // WIP do validation here!
+   await Task.Delay(TimeSpan.FromSeconds(1));
 
    // Logging
    Logger.Info("Validation completed!");
