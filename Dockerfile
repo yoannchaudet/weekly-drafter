@@ -24,6 +24,7 @@ RUN adduser --disabled-password \
   --home /app \
   --gecos '' dotnetuser && chown -R dotnetuser /app
 RUN apk upgrade musl
+RUN apk add --no-cache icu-libs
 USER dotnetuser
 WORKDIR /app
 COPY --from=publish /app/publish .
