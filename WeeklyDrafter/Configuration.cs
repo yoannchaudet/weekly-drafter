@@ -34,11 +34,23 @@ public class Configuration
   // Parse a configuration from a TOML file
   public static Configuration ParseConfiguration(string path)
   {
+    // Try to parse the file and return it
     if (Toml.TryToModel<Configuration>(File.ReadAllText(path), out var config, out var errors)) return config;
 
-    // WIP: parse the errors and create proper errors
-    // https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-error-message
-    throw new Exception($"Failed to parse configuration file at {path}:\n{string.Join("\n", errors)}");
+    // Spit out errors
+    foreach (var error in errors)
+    {
+      Logger.Error(error.Message, new Logger.AnnotationProperties()
+      {
+        File = path,
+        StartLine = error.Span.Start.Line.ToString(),
+        EndLine = error.Span.End.Line.ToString(),
+        StartColumn = error.Span.Start.Column.ToString(),
+        EndColumn = error.Span.End.Column.ToString()
+      });
+    }
+
+    throw Logger.Error($"Failed to parse configuration at {path}", throws: true)!;
   }
 
   public class Team

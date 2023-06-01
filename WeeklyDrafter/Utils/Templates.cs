@@ -18,10 +18,10 @@ public static class Templates
   {
     // Validate the file exists
     if (!File.Exists(path))
-      Logger.Error($"File {path} does not exist, unable to parse Liquid template", new Logger.AnnotationProperties
+      throw Logger.Error($"File {path} does not exist, unable to parse Liquid template", new Logger.AnnotationProperties
       {
         File = path
-      }, true);
+      }, true)!;
 
     // Render
     var template = Template.ParseLiquid(File.ReadAllText(path, Encoding.UTF8), path);
@@ -32,11 +32,11 @@ public static class Templates
   {
     // Don't render the template if it has errors
     if (template.HasErrors)
-      Logger.Error($"Error parsing Liquid template{Environment.NewLine}{template.Messages}",
+      throw Logger.Error($"Error parsing Liquid template{Environment.NewLine}{template.Messages}",
         new Logger.AnnotationProperties
         {
           File = template.SourceFilePath
-        }, true);
+        }, true)!;
 
     // Enrich the passed context
     var enrichedContext = new ScriptObject();
@@ -76,7 +76,8 @@ public static class Templates
       return marker.AddArgument(key, value);
     }
 
-    public static Markers.Marker JoinArgument(Markers.Marker marker, string key, List<string> values, char separator = ',')
+    public static Markers.Marker JoinArgument(Markers.Marker marker, string key, List<string> values,
+      char separator = ',')
     {
       if (values.Any())
         return AddArgument(marker, key, string.Join(separator, values));

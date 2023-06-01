@@ -1,6 +1,6 @@
 namespace weekly_drafter;
 
-public class ActionContext
+public class ActionsContext
 {
   // Default variables from https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables
   public string GitHubWorkspace => GetFromEnvironment("GITHUB_WORKSPACE", true)!;
@@ -14,7 +14,8 @@ public class ActionContext
   {
     var value = Environment.GetEnvironmentVariable(key);
     if (value == null && required)
-      throw new ArgumentException($"Unable to extract required environment variable '{key}' from Actions context");
+      throw Logger.Error($"Unable to extract required environment variable '{key}' from Actions context",
+        throws: true)!;
     return value;
   }
 }

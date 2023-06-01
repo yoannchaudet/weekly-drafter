@@ -10,11 +10,10 @@ public static class Logger
   }
 
   // Write an error message (potentially along with an annotation)
-  public static void Error(string? message, AnnotationProperties? annotationProps = null, bool throws = false)
+  public static Exception? Error(string? message, AnnotationProperties? annotationProps = null, bool throws = false)
   {
     IssueCommand(new CommandEnvelope("error", annotationProps.ToDictionary(), message));
-    if (throws)
-      throw new Exception(message);
+    return throws ? new Exception(message) : null;
   }
 
   // Write a warning message (potentially along with an annotation)

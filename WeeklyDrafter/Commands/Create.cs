@@ -4,9 +4,9 @@ namespace weekly_drafter.Commands;
 
 public class Create
 {
-  public Create(ActionContext actionContext, Configuration configuration, GitHub github)
+  public Create(ActionsContext actionsContext, Configuration configuration, GitHub github)
   {
-    ActionContext = actionContext;
+    ActionsContext = actionsContext;
     Configuration = configuration;
     GitHub = github;
   }
@@ -15,7 +15,7 @@ public class Create
 
   private GitHub GitHub { get; }
 
-  private ActionContext ActionContext { get; }
+  private ActionsContext ActionsContext { get; }
 
   public async Task Run()
   {
@@ -24,7 +24,7 @@ public class Create
     Logger.Info($"Attempting to create a weekly update for {sortableMonday}");
 
     // Check if we have a PR already
-    var pr = await GitHub.GetCurrentWeeklyUpdatePR(sortableMonday);
+    var pr = await GitHub.GetCurrentWeeklyUpdatePullRequest(sortableMonday);
     if (pr != null)
     {
       Logger.Warning($"A weekly update PR already exist for {sortableMonday}! See {pr.Url}");

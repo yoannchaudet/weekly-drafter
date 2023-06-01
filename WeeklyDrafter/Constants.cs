@@ -9,7 +9,7 @@ public static class Constants
   public const string WeeklyTemplatePath = ".github/weekly-drafter/weekly.liquid";
 
   // Weekly PR template path
-  public const string WeeklyPRTemplatePath = ".github/weekly-drafter/weekly.pr.liquid";
+  public const string WeeklyPullRequestTemplatePath = ".github/weekly-drafter/weekly.pr.liquid";
 
   // Weekly placeholder template path
   public const string WeeklyPlaceholderTemplatePath = ".github/weekly-drafter/weekly.placeholder.liquid";
@@ -25,5 +25,5 @@ public static class Constants
   public const string WeeklyUpdateMarkerDate = "date";
 
   // API product header
-  public const string GitHubAPIProductHeader = "weekly-update";
+  public const string GitHubApiProductHeader = "weekly-update";
 }

@@ -12,23 +12,23 @@ namespace weekly_drafter.Services;
 
 public class GitHub
 {
-  public GitHub(ActionContext actionContext, Configuration configuration)
+  public GitHub(ActionsContext actionsContext, Configuration configuration)
   {
-    ActionContext = actionContext;
+    ActionsContext = actionsContext;
     Configuration = configuration;
 
     // Create a Rest client
-    Rest = new GitHubClient(new ProductHeaderValue(Constants.GitHubAPIProductHeader))
+    Rest = new GitHubClient(new ProductHeaderValue(Constants.GitHubApiProductHeader))
     {
-      Credentials = new Credentials(actionContext.GitHubToken)
+      Credentials = new Credentials(actionsContext.GitHubToken)
     };
 
     // Create a GraphQL connection
-    GraphQL = new Connection(new Octokit.GraphQL.ProductHeaderValue(Constants.GitHubAPIProductHeader),
-      actionContext.GitHubToken);
+    GraphQL = new Connection(new Octokit.GraphQL.ProductHeaderValue(Constants.GitHubApiProductHeader),
+      actionsContext.GitHubToken);
   }
 
-  private ActionContext ActionContext { get; }
+  private ActionsContext ActionsContext { get; }
   private Connection GraphQL { get; }
   private GitHubClient Rest { get; }
   private Configuration Configuration { get; }
@@ -42,14 +42,14 @@ public class GitHub
     var states = new[] { PullRequestState.Open };
 
     // Select last PRs still opened with the weekly-update label
-    var query = new Query().Repository(ActionContext.GitHubRepositoryName, ActionContext.GitHubRepositoryOwnerName)
+    var query = new Query().Repository(ActionsContext.GitHubRepositoryName, ActionsContext.GitHubRepositoryOwnerName)
       .PullRequests(orderBy: orderBy, labels: labels, states: states, first: first).Nodes
       .Select(pr => new PullRequest { Body = pr.Body, Url = pr.Url, Number = pr.Number });
     return await GraphQL.Run(query);
   }
 
   // Return the current weekly update PR if any
-  public async Task<PullRequest?> GetCurrentWeeklyUpdatePR(string sortableMonday)
+  public async Task<PullRequest?> GetCurrentWeeklyUpdatePullRequest(string sortableMonday)
   {
     return (await GetLastWeeklyUpdatePRs()).FirstOrDefault(pr => Markers.FromText(pr.Body!).Any(m =>
       m.Name == Constants.WeeklyUpdateMarker &&
@@ -59,7 +59,7 @@ public class GitHub
   // Return basic information about the current repository (e.g. default branch's name)
   public async Task<Repository> GetRepository()
   {
-    var query = new Query().Repository(ActionContext.GitHubRepositoryName, ActionContext.GitHubRepositoryOwnerName)
+    var query = new Query().Repository(ActionsContext.GitHubRepositoryName, ActionsContext.GitHubRepositoryOwnerName)
       .DefaultBranchRef.Select(reference => new Repository
       {
         RepositoryId = reference.Repository.Id,
@@ -81,8 +81,8 @@ public class GitHub
       try
       {
         Logger.Info("Try to fetch existing label");
-        existingLabel = await Rest.Issue.Labels.Get(ActionContext.GitHubRepositoryOwnerName,
-          ActionContext.GitHubRepositoryName, Constants.WeeklyUpdateLabel);
+        existingLabel = await Rest.Issue.Labels.Get(ActionsContext.GitHubRepositoryOwnerName,
+          ActionsContext.GitHubRepositoryName, Constants.WeeklyUpdateLabel);
       }
       catch (NotFoundException)
       {
@@ -92,8 +92,8 @@ public class GitHub
       if (existingLabel == null)
       {
         Logger.Info("Create label");
-        return (await Rest.Issue.Labels.Create(ActionContext.GitHubRepositoryOwnerName,
-          ActionContext.GitHubRepositoryName,
+        return (await Rest.Issue.Labels.Create(ActionsContext.GitHubRepositoryOwnerName,
+          ActionsContext.GitHubRepositoryName,
           new NewLabel(Constants.WeeklyUpdateLabel, Constants.WeeklyUpdateLabelColor))).NodeId;
       }
 
@@ -101,8 +101,8 @@ public class GitHub
       if (existingLabel.Color != Constants.WeeklyUpdateLabelColor)
       {
         Logger.Info("Update label");
-        return (await Rest.Issue.Labels.Update(ActionContext.GitHubRepositoryOwnerName,
-          ActionContext.GitHubRepositoryName, Constants.WeeklyUpdateLabel,
+        return (await Rest.Issue.Labels.Update(ActionsContext.GitHubRepositoryOwnerName,
+          ActionsContext.GitHubRepositoryName, Constants.WeeklyUpdateLabel,
           new LabelUpdate(Constants.WeeklyUpdateLabel, Constants.WeeklyUpdateLabelColor))).NodeId;
       }
 
@@ -141,7 +141,7 @@ public class GitHub
     };
 
     // Render the weekly update
-    var contentPath = Path.Join(ActionContext.GitHubWorkspace, Constants.WeeklyTemplatePath);
+    var contentPath = Path.Join(ActionsContext.GitHubWorkspace, Constants.WeeklyTemplatePath);
     var content = Templates.RenderLiquidFromFile(contentPath, templatesContext);
 
     //  Add a commit on that new branch with the weekly update's content
@@ -167,7 +167,7 @@ public class GitHub
     await GraphQL.Run(createCommitOnBranch);
 
     // Render the body of the PR
-    var bodyPath = Path.Join(ActionContext.GitHubWorkspace, Constants.WeeklyPRTemplatePath);
+    var bodyPath = Path.Join(ActionsContext.GitHubWorkspace, Constants.WeeklyPullRequestTemplatePath);
     var body = new StringBuilder(Templates.RenderLiquidFromFile(bodyPath, templatesContext));
     body.AppendLine();
     body.AppendLine("<!-- Metadata, do not remove -->");
@@ -207,7 +207,7 @@ public class GitHub
     foreach (var placeholder in Markers.FromText(content).Where(marker => marker.Name == "placeholder"))
     {
       // Render the body of the comment
-      var placeholderPath = Path.Join(ActionContext.GitHubWorkspace, Constants.WeeklyPlaceholderTemplatePath);
+      var placeholderPath = Path.Join(ActionsContext.GitHubWorkspace, Constants.WeeklyPlaceholderTemplatePath);
       var placeholderContent = Templates.RenderLiquidFromFile(placeholderPath, new
       {
         Writers = placeholder.Arguments
