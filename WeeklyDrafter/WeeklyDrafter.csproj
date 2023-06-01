@@ -5,6 +5,7 @@
     <RootNamespace>weekly_drafter</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <InvariantGlobalization>false</InvariantGlobalization>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="octokit" Version="5.0.4" />
