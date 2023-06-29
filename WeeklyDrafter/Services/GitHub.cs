@@ -1,7 +1,10 @@
+using System.Net;
 using System.Text;
 using Octokit;
 using Octokit.GraphQL;
 using Octokit.GraphQL.Model;
+using Polly;
+using Polly.Retry;
 using weekly_drafter.Utils;
 using Connection = Octokit.GraphQL.Connection;
 using Label = Octokit.Label;
@@ -26,12 +29,25 @@ public class GitHub
     // Create a GraphQL connection
     GraphQL = new Connection(new Octokit.GraphQL.ProductHeaderValue(Constants.GitHubApiProductHeader),
       actionsContext.GitHubToken);
+
+    // Setup Polly
+    //  2 ^ 1 = 2 seconds then
+    //  2 ^ 2 = 4 seconds then
+    //  2 ^ 3 = 8 seconds then
+    //  2 ^ 4 = 16 seconds then
+    //  2 ^ 5 = 32 seconds
+    RetryPolicy = Policy
+      .Handle<HttpRequestException>(r => r.StatusCode == HttpStatusCode.InternalServerError)
+      .Or<HttpRequestException>(r => r.StatusCode == HttpStatusCode.BadGateway)
+      .WaitAndRetryAsync(5, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+        (exception, timeSpan) => { Logger.Warning($"API call failed ({timeSpan.ToString()}): {exception.Message}"); });
   }
 
   private ActionsContext ActionsContext { get; }
   private Connection GraphQL { get; }
   private GitHubClient Rest { get; }
   private Configuration Configuration { get; }
+  private AsyncRetryPolicy RetryPolicy { get; }
 
   // Return the last few opened weekly update PRs
   public async Task<IEnumerable<PullRequest>> GetLastWeeklyUpdatePRs(int first = 10)
@@ -45,7 +61,7 @@ public class GitHub
     var query = new Query().Repository(ActionsContext.GitHubRepositoryName, ActionsContext.GitHubRepositoryOwnerName)
       .PullRequests(orderBy: orderBy, labels: labels, states: states, first: first).Nodes
       .Select(pr => new PullRequest { Body = pr.Body, Url = pr.Url, Number = pr.Number });
-    return await GraphQL.Run(query);
+    return await RetryPolicy.ExecuteAsync(() => GraphQL.Run(query));
   }
 
   // Return the current weekly update PR if any
@@ -67,7 +83,7 @@ public class GitHub
         DefaultBranchOid = reference.Target.Oid,
         Url = reference.Repository.Url
       });
-    return await GraphQL.Run(query);
+    return await RetryPolicy.ExecuteAsync(() => GraphQL.Run(query));
   }
 
   // Create or update the weekly-drafter label and return its object id
@@ -81,8 +97,9 @@ public class GitHub
       try
       {
         Logger.Info("Try to fetch existing label");
-        existingLabel = await Rest.Issue.Labels.Get(ActionsContext.GitHubRepositoryOwnerName,
-          ActionsContext.GitHubRepositoryName, Constants.WeeklyUpdateLabel);
+        existingLabel = await RetryPolicy.ExecuteAsync(() => Rest.Issue.Labels.Get(
+          ActionsContext.GitHubRepositoryOwnerName,
+          ActionsContext.GitHubRepositoryName, Constants.WeeklyUpdateLabel));
       }
       catch (NotFoundException)
       {
@@ -92,18 +109,18 @@ public class GitHub
       if (existingLabel == null)
       {
         Logger.Info("Create label");
-        return (await Rest.Issue.Labels.Create(ActionsContext.GitHubRepositoryOwnerName,
+        return (await RetryPolicy.ExecuteAsync(() => Rest.Issue.Labels.Create(ActionsContext.GitHubRepositoryOwnerName,
           ActionsContext.GitHubRepositoryName,
-          new NewLabel(Constants.WeeklyUpdateLabel, Constants.WeeklyUpdateLabelColor))).NodeId;
+          new NewLabel(Constants.WeeklyUpdateLabel, Constants.WeeklyUpdateLabelColor)))).NodeId;
       }
 
       // Update label
       if (existingLabel.Color != Constants.WeeklyUpdateLabelColor)
       {
         Logger.Info("Update label");
-        return (await Rest.Issue.Labels.Update(ActionsContext.GitHubRepositoryOwnerName,
+        return (await RetryPolicy.ExecuteAsync(() => Rest.Issue.Labels.Update(ActionsContext.GitHubRepositoryOwnerName,
           ActionsContext.GitHubRepositoryName, Constants.WeeklyUpdateLabel,
-          new LabelUpdate(Constants.WeeklyUpdateLabel, Constants.WeeklyUpdateLabelColor))).NodeId;
+          new LabelUpdate(Constants.WeeklyUpdateLabel, Constants.WeeklyUpdateLabelColor)))).NodeId;
       }
 
       // Keep existing label
@@ -129,7 +146,7 @@ public class GitHub
       {
         RepositoryId = repository.RepositoryId!.Value, Name = branchRef, Oid = repository.DefaultBranchOid
       }).Select(reference => reference.Ref.Id);
-    var branchRefId = await GraphQL.Run(createRef);
+    var branchRefId = await RetryPolicy.ExecuteAsync(() => GraphQL.Run(createRef));
 
     // Shared template context
     var templatesContext = new
@@ -164,7 +181,7 @@ public class GitHub
         Deletions = new FileDeletion[] { }
       }
     }).Select(c => c.Commit.Oid);
-    await GraphQL.Run(createCommitOnBranch);
+    await RetryPolicy.ExecuteAsync(() => GraphQL.Run(createCommitOnBranch));
 
     // Render the body of the PR
     var bodyPath = Path.Join(ActionsContext.GitHubWorkspace, Constants.WeeklyPullRequestTemplatePath);
@@ -192,7 +209,7 @@ public class GitHub
       Number = pr.PullRequest.Number,
       Id = pr.PullRequest.Id.Value
     });
-    var pr = await GraphQL.Run(createPullRequest);
+    var pr = await RetryPolicy.ExecuteAsync(() => GraphQL.Run(createPullRequest));
 
     // Add the weekly label to the PR
     var labelOid = createOrUpdateLabel.GetAwaiter().GetResult();
@@ -200,7 +217,7 @@ public class GitHub
     {
       LabelableId = new ID(pr.Id), LabelIds = new[] { new ID(labelOid) }
     }).Select(m => m.ClientMutationId);
-    await GraphQL.Run(addLabelsToPr);
+    await RetryPolicy.ExecuteAsync(() => GraphQL.Run(addLabelsToPr));
 
     // Create comments for each placeholder marker
     var threads = new List<DraftPullRequestReviewThread>();
@@ -215,7 +232,7 @@ public class GitHub
       });
 
       // Accumulate a thread
-      threads.Add(new DraftPullRequestReviewThread()
+      threads.Add(new DraftPullRequestReviewThread
       {
         Path = Configuration.RenderedWeeklyUpdatePath,
         Line = placeholder.Line,
@@ -224,13 +241,13 @@ public class GitHub
       });
     }
 
-    var addPullRequestReview = new Mutation().AddPullRequestReview(new AddPullRequestReviewInput()
+    var addPullRequestReview = new Mutation().AddPullRequestReview(new AddPullRequestReviewInput
     {
       PullRequestId = new ID(pr.Id),
       Event = PullRequestReviewEvent.Comment,
       Threads = threads
     }).Select(m => m.ClientMutationId);
-    await GraphQL.Run(addPullRequestReview);
+    await RetryPolicy.ExecuteAsync(() => GraphQL.Run(addPullRequestReview));
 
     // Return the PR
     return pr;
